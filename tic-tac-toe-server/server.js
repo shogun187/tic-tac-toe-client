@@ -3,7 +3,7 @@ const cors = require('cors');
 const bodyParser = require('body-parser');
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 3002;
 
 app.use(cors());
 app.use(bodyParser.json());
@@ -12,7 +12,7 @@ let games = {}; // In-memory storage for simplicity
 
 // Create a new game session
 app.post('/api/games', (req, res) => {
-    const gameId = `GameSession_${Object.keys(games).length + 1}`;
+    const gameId = Object.keys(games).length + 1;
     games[gameId] = {
         id: gameId,
         board: Array(9).fill(null),
@@ -20,11 +20,13 @@ app.post('/api/games', (req, res) => {
         winner: null,
         moves: []
     };
+    console.log(`Game ${gameId} created`)
     res.json(games[gameId]);
 });
 
 // Get game state
 app.get('/api/games/:id', (req, res) => {
+    console.log('params is ', req.params.id);
     const game = games[req.params.id];
     if (game) {
         res.json(game);
