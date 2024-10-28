@@ -15,7 +15,8 @@
       <div
           class="board"
           role="grid"
-          aria-label="Tic Tac Toe Board">
+          aria-label="Tic Tac Toe Board"
+      >
         <div
             v-for="(cell, index) in game.board"
             :key="index"
@@ -24,7 +25,8 @@
             :aria-label="`Cell ${index + 1}: ${cell ? cell : 'empty'}`"
             @click="makeMove(index)"
             @keypress.enter="makeMove(index)"
-            class="cell">
+            class="cell"
+        >
           {{ cell }}
         </div>
       </div>
@@ -39,9 +41,9 @@
   </div>
 </template>
 
-
 <script>
 import axios from 'axios';
+import { io } from 'socket.io-client';
 
 export default {
   props: ['id'],
@@ -55,37 +57,66 @@ export default {
         currentPlayer: 'X',
         winner: null,
         moves: []
-      }
+      },
+      socket: null
     };
   },
   methods: {
     async createGame() {
-      const response = await axios.post('http://localhost:3002/api/games');
-      this.game = response.data;
-      this.gameId = this.game.id;
+      try {
+        const response = await axios.post('http://localhost:3002/api/games');
+        this.game = response.data;
+        this.gameId = this.game.id;
+        this.initializeSocket();
+      } catch (error) {
+        console.error('Error creating game:', error);
+      }
     },
     async joinGame() {
       try {
-        console.log('this.joinID', this.joinId)
         const response = await axios.get(`http://localhost:3002/api/games/${this.joinId}`);
         this.game = response.data;
         this.gameId = this.game.id;
+        this.initializeSocket();
       } catch (error) {
         alert('Game not found');
       }
     },
-    async makeMove(index) {
+    initializeSocket() {
+      this.socket = io('http://localhost:3002');
+
+      // Join the game room
+      this.socket.emit('joinGame', this.gameId);
+
+      // Listen for game data updates
+      this.socket.on('gameData', (updatedGame) => {
+        this.game = updatedGame;
+      });
+
+      // Listen for player joined notifications
+      this.socket.on('playerJoined', (message) => {
+        console.log(message);
+      });
+
+      // Listen for errors
+      this.socket.on('error', (message) => {
+        alert(message);
+      });
+    },
+    makeMove(index) {
       if (this.game.winner || this.game.board[index]) return;
 
       const player = this.game.currentPlayer;
-      const response = await axios.post(`http://localhost:3002/api/games/${this.gameId}/move`, {
+      // Emit move to server
+      this.socket.emit('makeMove', {
+        gameId: this.gameId,
         index,
         player
       });
-      this.game = response.data;
     },
     resetGame() {
       this.gameId = null;
+      this.joinId = '';
       this.game = {
         id: '',
         board: Array(9).fill(null),
@@ -93,18 +124,15 @@ export default {
         winner: null,
         moves: []
       };
+      if (this.socket) {
+        this.socket.disconnect();
+        this.socket = null;
+      }
     }
   },
-  mounted() {
-    if (this.gameId) {
-      axios.get(`http://localhost:3002/api/games/${this.gameId}`)
-          .then(response => {
-            this.game = response.data;
-          })
-          .catch(() => {
-            alert('Game not found');
-            this.gameId = null;
-          });
+  beforeUnmount() {
+    if (this.socket) {
+      this.socket.disconnect();
     }
   }
 };
@@ -150,5 +178,33 @@ input {
   font-size: 1em;
   margin: 10px 0;
   width: 200px;
+}
+
+@media (max-width: 600px) {
+  .board {
+    grid-template-columns: repeat(3, 80px);
+    grid-template-rows: repeat(3, 80px);
+    gap: 8px;
+  }
+
+  .cell {
+    font-size: 1.5em;
+  }
+}
+
+@media (max-width: 400px) {
+  .board {
+    grid-template-columns: repeat(3, 60px);
+    grid-template-rows: repeat(3, 60px);
+    gap: 5px;
+  }
+
+  .cell {
+    font-size: 1.2em;
+  }
+
+  input {
+    width: 150px;
+  }
 }
 </style>
