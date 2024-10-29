@@ -36,7 +36,7 @@
       <div v-else>
         <h3>Current Player: {{ game.currentPlayer }}</h3>
       </div>
-      <button @click="resetGame" aria-label="Reset Game">Reset Game</button>
+      <button @click="exitGame" aria-label="Exit Game">Exit Game</button>
     </div>
   </div>
 </template>
@@ -58,7 +58,9 @@ export default {
         winner: null,
         moves: []
       },
-      socket: null
+      socket: null,
+      playerSymbol: null,
+      hasAlerted: false // To prevent multiple alerts
     };
   },
   methods: {
@@ -83,14 +85,21 @@ export default {
       }
     },
     initializeSocket() {
+      // Initialize Socket.IO client
       this.socket = io('http://localhost:3002');
 
       // Join the game room
       this.socket.emit('joinGame', this.gameId);
 
+      // Listen for player symbol assignment
+      this.socket.on('playerSymbol', (symbol) => {
+        this.playerSymbol = symbol;
+      });
+
       // Listen for game data updates
       this.socket.on('gameData', (updatedGame) => {
         this.game = updatedGame;
+        this.checkGameStatus();
       });
 
       // Listen for player joined notifications
@@ -98,23 +107,32 @@ export default {
         console.log(message);
       });
 
-      // Listen for errors
-      this.socket.on('error', (message) => {
+      // Listen for error messages
+      this.socket.on('errorMessage', (message) => {
         alert(message);
       });
     },
     makeMove(index) {
       if (this.game.winner || this.game.board[index]) return;
 
-      const player = this.game.currentPlayer;
+      if (this.playerSymbol !== this.game.currentPlayer) {
+        alert('Not your turn');
+        return;
+      }
+
       // Emit move to server
       this.socket.emit('makeMove', {
         gameId: this.gameId,
         index,
-        player
+        player: this.playerSymbol
       });
     },
-    resetGame() {
+    exitGame() {
+      // Disconnect the socket if connected
+      if (this.socket) {
+        this.socket.disconnect();
+        this.socket = null;
+      }
       this.gameId = null;
       this.joinId = '';
       this.game = {
@@ -124,9 +142,17 @@ export default {
         winner: null,
         moves: []
       };
-      if (this.socket) {
-        this.socket.disconnect();
-        this.socket = null;
+      this.playerSymbol = null;
+      this.hasAlerted = false;
+    },
+    checkGameStatus() {
+      if (this.game.winner && !this.hasAlerted) {
+        if (this.game.winner === 'Draw') {
+          alert('The game is a draw!');
+        } else {
+          alert(`Player ${this.game.winner} wins!`);
+        }
+        this.hasAlerted = true;
       }
     }
   },

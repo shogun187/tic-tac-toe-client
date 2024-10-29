@@ -55,28 +55,51 @@ io.on('connection', (socket) => {
     socket.on('joinGame', (gameId) => {
         const game = games[gameId];
         if (game) {
+            const clients = io.sockets.adapter.rooms.get(gameId);
+            const numClients = clients ? clients.size : 0;
+
+            if (numClients >= 2) {
+                socket.emit('errorMessage', 'Game is already full');
+                return;
+            }
+
             socket.join(gameId);
+
+            // Assign player symbol
+            const playerSymbol = numClients === 0 ? 'X' : 'O';
+            socket.emit('playerSymbol', playerSymbol);
+
             socket.emit('gameData', game);
-            // Notify others in the room
-            socket.to(gameId).emit('playerJoined', `A new player has joined Game ${gameId}`);
+            socket.to(gameId).emit('playerJoined', `Player ${playerSymbol} has joined Game ${gameId}`);
         } else {
-            socket.emit('error', 'Game not found');
+            socket.emit('errorMessage', 'Game not found');
         }
     });
 
     // Handle making a move
     socket.on('makeMove', ({ gameId, index, player }) => {
         const game = games[gameId];
-        if (!game || game.winner) {
-            socket.emit('error', 'Invalid game or game already ended');
+        if (!game) {
+            socket.emit('errorMessage', 'Game not found');
             return;
         }
 
-        if (game.board[index] || player !== game.currentPlayer) {
-            socket.emit('error', 'Invalid move');
+        if (game.winner) {
+            socket.emit('errorMessage', 'Game has already ended');
             return;
         }
 
+        if (game.board[index] !== null) {
+            socket.emit('errorMessage', 'Cell is already occupied');
+            return;
+        }
+
+        if (player !== game.currentPlayer) {
+            socket.emit('errorMessage', 'Not your turn');
+            return;
+        }
+
+        // Make the move
         game.board[index] = player;
         game.moves.push({ player, index });
 
@@ -87,15 +110,25 @@ io.on('connection', (socket) => {
             [0,4,8], [2,4,6]
         ];
 
-        winPatterns.forEach(pattern => {
+        let hasWinner = false;
+        for (const pattern of winPatterns) {
             const [a, b, c] = pattern;
             if (game.board[a] && game.board[a] === game.board[b] && game.board[a] === game.board[c]) {
                 game.winner = game.board[a];
+                hasWinner = true;
+                break;
             }
-        });
+        }
 
-        // Switch player
-        game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
+        // Check for draw if no winner
+        if (!hasWinner && game.board.every(cell => cell !== null)) {
+            game.winner = 'Draw';
+        }
+
+        // Switch player only if game is not over
+        if (!game.winner) {
+            game.currentPlayer = game.currentPlayer === 'X' ? 'O' : 'X';
+        }
 
         // Emit updated game state to all clients in the room
         io.to(gameId).emit('gameData', game);
