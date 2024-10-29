@@ -5,7 +5,7 @@
       <button @click="createGame" aria-label="Create a new game session">Create New Game</button>
       <div>
         <h2>Join Existing Game</h2>
-        <input v-model="joinId" placeholder="Enter Game ID" aria-label="Game ID">
+        <input v-model="joinId" placeholder="Enter Game ID">
         <button @click="joinGame" aria-label="Join game">Join Game</button>
       </div>
     </div>
@@ -15,8 +15,7 @@
       <div
           class="board"
           role="grid"
-          aria-label="Tic Tac Toe Board"
-      >
+          aria-label="Tic Tac Toe Board">
         <div
             v-for="(cell, index) in game.board"
             :key="index"
@@ -25,8 +24,7 @@
             :aria-label="`Cell ${index + 1}: ${cell ? cell : 'empty'}`"
             @click="makeMove(index)"
             @keypress.enter="makeMove(index)"
-            class="cell"
-        >
+            class="cell">
           {{ cell }}
         </div>
       </div>
@@ -34,9 +32,20 @@
         <h3>Winner: {{ game.winner }}</h3>
       </div>
       <div v-else>
-        <h3>Current Player: {{ game.currentPlayer }}</h3>
+        <h3>You are Player {{playerSymbol}}</h3>
+        <h3>Current Turn: Player {{ game.currentPlayer }}</h3>
       </div>
+
       <button @click="exitGame" aria-label="Exit Game">Exit Game</button>
+
+      <div class="move-history" aria-label="Past Moves">
+        <h3>Past Moves:</h3>
+
+        <h3 v-for="(move, index) in game.moves" :key="index">
+          Move {{ index + 1 }}: Player {{ move.player }} to Cell {{ move.index + 1 }}
+        </h3>
+
+      </div>
     </div>
   </div>
 </template>
@@ -110,6 +119,9 @@ export default {
       // Listen for error messages
       this.socket.on('errorMessage', (message) => {
         alert(message);
+        if (message === 'Game is already full') {
+          this.exitGame();
+        }
       });
     },
     makeMove(index) {
@@ -204,6 +216,13 @@ input {
   font-size: 1em;
   margin: 10px 0;
   width: 200px;
+}
+
+.move-history {
+  margin-top: 20px;
+  padding: 10px;
+  border-top: 2px solid #000;
+  text-align: center;
 }
 
 @media (max-width: 600px) {
