@@ -21,10 +21,11 @@
             :key="index"
             role="gridcell"
             tabindex="0"
-            :aria-label="`Cell ${index + 1}: ${cell ? cell : 'empty'}`"
             @click="makeMove(index)"
             @keypress.enter="makeMove(index)"
             class="cell">
+          <!--Invisible but readable but NVDA screen reader-->
+          <span style="color: transparent;position: absolute; font-size: 15px;">Cell {{ index + 1 }}: {{ cell ? cell : 'empty' }}</span>
           {{ cell }}
         </div>
       </div>
