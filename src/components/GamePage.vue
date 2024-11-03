@@ -142,7 +142,14 @@ export default {
 
     // Update the live announcement based on the latest move
     updateLiveAnnouncement(previousMoves, currentMoves) {
-      if (currentMoves.length > previousMoves.length) {
+
+        if (this.game.winner) {
+        if (this.game.winner === 'Draw') {
+          this.liveAnnouncement = 'The game is a draw.';
+        } else {
+          this.liveAnnouncement = `Player ${this.game.winner} has won the game.`;
+        }
+      } else if (currentMoves.length > previousMoves.length) {
         const latestMove = currentMoves[currentMoves.length - 1];
         const player = latestMove.player;
         const cell = latestMove.index + 1;
@@ -152,13 +159,6 @@ export default {
           this.liveAnnouncement = `You marked Cell ${cell}. Waiting for Player ${nextPlayer} to make a move.`
         } else {
           this.liveAnnouncement = `Player ${player} made a move to Cell ${cell}. Now it is your turn.`;
-        }
-
-      } else if (this.game.winner) {
-        if (this.game.winner === 'Draw') {
-          this.liveAnnouncement = 'The game is a draw.';
-        } else {
-          this.liveAnnouncement = `Player ${this.game.winner} has won the game.`;
         }
       } else {
         this.liveAnnouncement = `Waiting for Player ${this.game.currentPlayer} to make a move`;
