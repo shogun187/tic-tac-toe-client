@@ -31,6 +31,13 @@ This project is an **Accessible Tic-Tac-Toe** game built with **Vue.js** for the
 
 3. **Accessibility Focus:** Emphasis was placed on making the application accessible by utilizing semantic HTML structures, ARIA attributes, and ensuring compatibility with screen readers like **NVDA**.
 
+4. **Keyboard Navigation:**
+   - **Tab and Enter Keys:** The game is fully navigable using the **Tab** key to move through interactive elements and the **Enter** key to activate them. This allows users who rely on keyboards to interact with the game without needing a mouse.
+     - **Implementation Details:**
+       - **Focus Management:** Logical tab order ensures that users can navigate through the game board, create/join game sessions, and other interactive controls sequentially.
+       - **Activating Cells:** Each game cell is focusable and can be activated using the **Enter** key, enabling users to make moves efficiently.
+       - **Visual Indicators:** Focus states are clearly visible, providing visual cues to users about which element is currently active.
+
 ### Architecture Diagram
 
 ```mermaid
