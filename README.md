@@ -78,6 +78,12 @@ cd tic-tac-toe-client
 2. Run ```npm install``` to install the required npm packages
 3. To launch the backend server, run ```node server.js```
 
+### Playing The Game
+
+1. Open a web browser and navigate to ```http://localhost:8080```.
+2. On the main page, click the "Create New Game" button and remember the Game ID created.
+3. On another browser, navigate to the same page and enter the Game ID in the input box and join the game.
+
 ## API Documentation
 
 This section outlines the backend API endpoints and Socket.IO events, providing specifications and sample requests to interact with the application.
