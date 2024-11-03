@@ -31,6 +31,29 @@ This project is an **Accessible Tic-Tac-Toe** game built with **Vue.js** for the
 
 3. **Accessibility Focus:** Emphasis was placed on making the application accessible by utilizing semantic HTML structures, ARIA attributes, and ensuring compatibility with screen readers like **NVDA**.
 
+### Architecture Diagram
+
+```mermaid
+flowchart LR
+    subgraph Client
+        A[Browser]
+        A --> B[Vue.js Application]
+        B --> C[Socket.IO Client]
+    end
+    subgraph Server
+        D[Node.js Server]
+        D --> E[Express.js]
+        D --> F[Socket.IO Server]
+        D --> G[In-Memory Data Store]
+    end
+    A ---|"HTTP (REST API)"| D
+    C<-->|"WebSocket (Socket.IO)"|F
+
+
+
+
+```
+
 ## Installation
 
 ### Prerequisites
@@ -155,21 +178,5 @@ Sends a move action from the player to the server.
 **Usage Example:**
 
 ```socket.emit('makeMove', { gameId: '1', index: 4, player: 'X' });```
-
-```mermaid
-flowchart LR
-    subgraph Client
-        A[Browser]
-        A --> B[Vue.js Application]
-        B --> C[Socket.IO Client]
-    end
-    subgraph Server
-        D[Node.js Server]
-        D --> E[Express.js]
-        D --> F[Socket.IO Server]
-        D --> G[In-Memory Data Store]
-    end
-    A ---|HTTP (REST API)| D
-    C <-->|WebSocket (Socket.IO)| F
 
 
