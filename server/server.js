@@ -34,10 +34,6 @@ app.get('/api/games/:id', (req, res) => {
     }
 });
 
-app.get('/api/games', (req, res) => {
-    res.json(Object.values(games));
-});
-
 // Create HTTP server and integrate Socket.IO
 const server = http.createServer(app);
 const io = new Server(server, {
