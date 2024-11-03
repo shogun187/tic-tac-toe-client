@@ -31,6 +31,29 @@ This project is an **Accessible Tic-Tac-Toe** game built with **Vue.js** for the
 
 3. **Accessibility Focus:** Emphasis was placed on making the application accessible by utilizing semantic HTML structures, ARIA attributes, and ensuring compatibility with screen readers like **NVDA**.
 
+### Architecture Diagram
+
+```mermaid
+flowchart LR
+    subgraph Client
+        A[Browser]
+        A --> B[Vue.js Application]
+        B --> C[Socket.IO Client]
+    end
+    subgraph Server
+        D[Node.js Server]
+        D --> E[Express.js]
+        D --> F[Socket.IO Server]
+        D --> G[In-Memory Data Store]
+    end
+    A ---|"HTTP (REST API)"| D
+    C<-->|"WebSocket (Socket.IO)"|F
+
+
+
+
+```
+
 ## Installation
 
 ### Prerequisites
@@ -54,6 +77,12 @@ cd tic-tac-toe-client
 1. Run ```cd server``` and ensure that you are in the server directory
 2. Run ```npm install``` to install the required npm packages
 3. To launch the backend server, run ```node server.js```
+
+### Playing The Game
+
+1. Open a web browser and navigate to ```http://localhost:8080```.
+2. On the main page, click the "Create New Game" button and remember the Game ID created.
+3. On another browser, navigate to the same page and enter the Game ID in the input box and join the game.
 
 ## API Documentation
 
@@ -155,21 +184,5 @@ Sends a move action from the player to the server.
 **Usage Example:**
 
 ```socket.emit('makeMove', { gameId: '1', index: 4, player: 'X' });```
-
-```mermaid
-flowchart LR
-    subgraph Client
-        A[Browser]
-        A --> B[Vue.js Application]
-        B --> C[Socket.IO Client]
-    end
-    subgraph Server
-        D[Node.js Server]
-        D --> E[Express.js]
-        D --> F[Socket.IO Server]
-        D --> G[In-Memory Data Store]
-    end
-    A ---|HTTP (REST API)| D
-    C <-->|WebSocket (Socket.IO)| F
 
 
