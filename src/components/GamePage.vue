@@ -1,4 +1,3 @@
-<!-- src/components/Game.vue -->
 <template>
   <div>
     <div v-if="!gameId">
